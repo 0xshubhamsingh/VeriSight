@@ -1,0 +1,18 @@
+{
+  "name": "verisight",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @verisight/backend --filter @verisight/frontend --filter @verisight/extension dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "dev:backend": "pnpm --filter @verisight/backend dev",
+    "dev:frontend": "pnpm --filter @verisight/frontend dev",
+    "dev:extension": "pnpm --filter @verisight/extension dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

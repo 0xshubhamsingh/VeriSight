@@ -1,0 +1,14 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - workerd
+
+confirmModulesPurge: false
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
