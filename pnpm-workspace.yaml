@@ -10,5 +10,6 @@ onlyBuiltDependencies:
 confirmModulesPurge: false
 allowBuilds:
   esbuild: true
+  protobufjs: set this to true or false
   sharp: true
   workerd: true
