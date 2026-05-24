@@ -23,6 +23,9 @@ importers:
       hono:
         specifier: ^4.7.11
         version: 4.12.22
+      onnxruntime-web:
+        specifier: ^1.14.0
+        version: 1.14.0
       zod:
         specifier: ^3.25.64
         version: 3.25.76

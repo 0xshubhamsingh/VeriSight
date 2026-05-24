@@ -1,13 +1,16 @@
 import { AutoTokenizer, env as transformersEnv } from "@xenova/transformers";
 import type { AnalysisRequest, AnalysisResponse } from "@verisight/shared-types";
-import { InferenceSession, Tensor as OnnxTensor } from "onnxruntime-web";
+import { env as onnxEnv, InferenceSession, Tensor as OnnxTensor } from "onnxruntime-web/wasm";
 
 const TOKENIZER_ID = "bert-base-uncased";
 const MAX_SEQUENCE_LENGTH = 256;
 const TEXT_SNIPPET_LIMIT = 300;
 const REAL_CONFIDENCE_THRESHOLD = 0.8;
-const DEFAULT_MODEL_URL =
-  "https://raw.githubusercontent.com/LordShivam18/AI-Based-Fake-News-Detector/main/model.onnx";
+const DEFAULT_MODEL_URL = new URL("../../../../model.onnx", import.meta.url).href;
+const DEFAULT_ORT_WASM_URL = new URL(
+  "../../../../node_modules/onnxruntime-web/dist/ort-wasm.wasm",
+  import.meta.url,
+).href;
 
 type TokenizerEncoding = {
   input_ids: number[] | number[][];
@@ -27,6 +30,10 @@ let sessionPromise: Promise<InferenceSession> | null = null;
 
 transformersEnv.allowRemoteModels = true;
 transformersEnv.allowLocalModels = false;
+onnxEnv.wasm.wasmPaths = onnxEnv.wasm.wasmPaths ?? { "ort-wasm.wasm": DEFAULT_ORT_WASM_URL };
+onnxEnv.wasm.numThreads = 1;
+onnxEnv.wasm.proxy = false;
+(onnxEnv.wasm as { simd?: boolean }).simd = false;
 
 function clampConfidence(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
@@ -102,13 +109,20 @@ function getModelUrl(modelUrl?: string): string {
 }
 
 async function getTokenizer() {
-  tokenizerPromise ??= AutoTokenizer.from_pretrained(TOKENIZER_ID);
+  tokenizerPromise ??= AutoTokenizer.from_pretrained(TOKENIZER_ID).catch((error) => {
+    tokenizerPromise = null;
+    throw error;
+  });
+
   return tokenizerPromise;
 }
 
 async function getSession(modelUrl: string) {
   sessionPromise ??= InferenceSession.create(modelUrl, {
     executionProviders: ["wasm"],
+  }).catch((error) => {
+    sessionPromise = null;
+    throw error;
   });
 
   return sessionPromise;
