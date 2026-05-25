@@ -136,8 +136,8 @@ export async function getSession(env: Env): Promise<InferenceSession> {
     return cachedSession;
   }
 
-  if (!onnxEnv.wasm.wasmBinary) {
-    onnxEnv.wasm.wasmBinary = wasmModule;
+  if (!onnxEnv.wasm.wasmPaths) {
+    onnxEnv.wasm.wasmPaths = { "ort-wasm.wasm": wasmModule };
   }
 
   sessionPromise ??= InferenceSession.create(getModelUrl(env), {
