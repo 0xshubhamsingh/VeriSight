@@ -5,6 +5,40 @@ import { extractPageContext } from "./utils/extractor";
 
 const API_URL = "https://verisight-backend.frayquaza.workers.dev/analyze";
 const HOST_ID = "verisight-root";
+const FALLBACK_URL = "https://manual.verisight.local/unknown";
+const FALLBACK_HEADLINE = "Unknown Headline";
+const FALLBACK_SNIPPETS = ["No context available."];
+
+function cleanText(text: string | null | undefined): string {
+  return text?.replace(/\s+/g, " ").trim() ?? "";
+}
+
+function normalizeUrl(value: string): string {
+  const cleaned = value.trim();
+
+  if (!cleaned) {
+    return FALLBACK_URL;
+  }
+
+  try {
+    return new URL(cleaned).toString();
+  } catch {
+    return FALLBACK_URL;
+  }
+}
+
+function normalizeAnalysisRequest(data: AnalysisRequest): AnalysisRequest {
+  const headline = cleanText(data.headline) || FALLBACK_HEADLINE;
+  const contentSnippets = data.contentSnippets
+    .map(cleanText)
+    .filter((snippet) => snippet.length > 0);
+
+  return {
+    url: normalizeUrl(data.url),
+    headline,
+    contentSnippets: contentSnippets.length > 0 ? contentSnippets : FALLBACK_SNIPPETS,
+  };
+}
 
 function waitForDomReady(): Promise<void> {
   if (document.readyState !== "loading") {
@@ -17,12 +51,14 @@ function waitForDomReady(): Promise<void> {
 }
 
 async function requestAnalysis(data: AnalysisRequest): Promise<AnalysisResponse> {
+  const payload = normalizeAnalysisRequest(data);
+
   const response = await fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

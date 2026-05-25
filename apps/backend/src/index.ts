@@ -4,14 +4,47 @@ import { HTTPException } from "hono/http-exception";
 import { analyzeContent } from "./services/ai.service";
 import { analyzeRequestSchema } from "./validators/analyze.validator";
 
-const app = new Hono();
+type WorkerBindings = {
+  MODEL_URL?: string;
+};
+
+const ALLOWED_WEB_ORIGINS = new Set([
+  "https://verisight-trust-engine.vercel.app",
+]);
+
+function isLocalFrontendOrigin(origin: string): boolean {
+  try {
+    const { hostname, protocol } = new URL(origin);
+    return (
+      (protocol === "http:" || protocol === "https:") &&
+      (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function resolveAllowedOrigin(origin: string): string | undefined {
+  if (
+    ALLOWED_WEB_ORIGINS.has(origin) ||
+    origin.startsWith("chrome-extension://") ||
+    isLocalFrontendOrigin(origin)
+  ) {
+    return origin;
+  }
+
+  return undefined;
+}
+
+const app = new Hono<{ Bindings: WorkerBindings }>();
 
 app.use(
   "*",
   cors({
-    origin: "*",
+    origin: resolveAllowedOrigin,
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type"],
+    maxAge: 86400,
   }),
 );
 

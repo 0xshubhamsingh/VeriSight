@@ -1,4 +1,5 @@
 import { Activity, Eye, ShieldAlert } from "lucide-react";
+import { ManualScanner } from "../components/ManualScanner";
 import { MetricCard } from "../components/MetricCard";
 import { RiskBadge } from "../components/RiskBadge";
 import { useVeriSightStore } from "../store/useStore";
@@ -22,6 +23,8 @@ export function Dashboard() {
           Verification intelligence dashboard
         </h1>
       </header>
+
+      <ManualScanner />
 
       <section className="grid gap-4 md:grid-cols-3">
         <MetricCard

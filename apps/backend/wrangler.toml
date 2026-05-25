@@ -4,4 +4,4 @@ compatibility_date = "2026-05-24"
 workers_dev = true
 
 [vars]
-MODEL_URL = "https://your-pages-site.pages.dev/model.onnx"
+MODEL_URL = "https://verisight-trust-engine.vercel.app/model.onnx"
