@@ -39,9 +39,7 @@ declare module "onnxruntime-web" {
   };
 }
 
-declare module "onnxruntime-web/wasm" {
-  export { env, InferenceSession, Tensor } from "onnxruntime-web";
-}
+
 
 declare module "@xenova/transformers" {
   export const env: any;

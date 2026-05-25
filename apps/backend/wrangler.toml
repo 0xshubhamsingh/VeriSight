@@ -5,3 +5,7 @@ workers_dev = true
 
 [vars]
 MODEL_URL = "https://verisight-trust-engine.vercel.app/model.onnx"
+
+[observability.logs]
+enabled = false
+invocation_logs = true
