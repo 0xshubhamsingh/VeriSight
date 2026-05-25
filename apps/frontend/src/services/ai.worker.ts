@@ -77,7 +77,7 @@ async function analyzeContent(request: AnalysisRequest): Promise<AnalysisRespons
   };
 
   const results = await session.run(feeds);
-  const outputTensor = results[session.outputNames[0]];
+  const outputTensor = results[session.outputNames[0]!];
   const logits = outputTensor.data as Float32Array;
 
   const [realLogit = 0, fakeLogit = 0] = logits;
@@ -89,18 +89,17 @@ async function analyzeContent(request: AnalysisRequest): Promise<AnalysisRespons
   let riskLevel: AnalysisResponse["riskLevel"];
 
   if (fakeProbability > 0.6) {
-    classification = "fake";
+    classification = "false";
     riskLevel = "high";
   } else if (fakeProbability > 0.4) {
-    classification = "unverified";
+    classification = "unverifiable";
     riskLevel = "medium";
   } else {
-    classification = "real";
+    classification = "verified";
     riskLevel = "low";
   }
 
   return {
-    url: request.url,
     classification,
     confidence,
     riskLevel,
