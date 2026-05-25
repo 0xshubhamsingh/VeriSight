@@ -36,13 +36,6 @@ transformersEnv.allowLocalModels = false;
 transformersEnv.backends.onnx.wasm.numThreads = 1;
 transformersEnv.backends.onnx.wasm.simd = false;
 
-// Prevent onnxruntime-web from using path.join which breaks https:// URLs into https:/
-onnxEnv.wasm.wasmPaths = {
-  "ort-wasm.wasm": TRANSFORMERS_WASM_BASE_URL + "ort-wasm.wasm",
-  "ort-wasm-simd.wasm": TRANSFORMERS_WASM_BASE_URL + "ort-wasm-simd.wasm",
-  "ort-wasm-threaded.wasm": TRANSFORMERS_WASM_BASE_URL + "ort-wasm-threaded.wasm",
-  "ort-wasm-simd-threaded.wasm": TRANSFORMERS_WASM_BASE_URL + "ort-wasm-simd-threaded.wasm",
-};
 onnxEnv.wasm.numThreads = 1;
 onnxEnv.wasm.proxy = false;
 (onnxEnv.wasm as any).simd = false;
@@ -139,6 +132,11 @@ async function getTokenizer() {
 export async function getSession(env: Env): Promise<InferenceSession> {
   if (cachedSession) {
     return cachedSession;
+  }
+
+  if (!onnxEnv.wasm.wasmBinary) {
+    const wasmRes = await fetch(TRANSFORMERS_WASM_BASE_URL + "ort-wasm.wasm");
+    onnxEnv.wasm.wasmBinary = new Uint8Array(await wasmRes.arrayBuffer());
   }
 
   sessionPromise ??= InferenceSession.create(getModelUrl(env), {
