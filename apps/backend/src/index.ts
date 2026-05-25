@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
-import { analyzeContent, ModelInferenceError } from "./services/ai.service";
+import { analyzeContent, ModelInferenceError, getSession } from "./services/ai.service";
 import { analyzeRequestSchema } from "./validators/analyze.validator";
 
 type WorkerBindings = {
@@ -51,6 +51,16 @@ app.use(
 app.get("/health", (c) => {
   return c.json({ status: "ok" });
 });
+
+app.get("/test-model", async (c) => {
+  try {
+    await getSession(c.env);
+    return c.text("Model loaded successfully!");
+  } catch (err: any) {
+    return c.text("Error loading model: " + (err.message || String(err)));
+  }
+});
+
 
 app.post("/analyze", async (c) => {
   const body = await c.req.json().catch(() => {

@@ -129,7 +129,7 @@ async function getTokenizer() {
   return tokenizerPromise;
 }
 
-async function getSession(env: Env): Promise<InferenceSession> {
+export async function getSession(env: Env): Promise<InferenceSession> {
   if (cachedSession) {
     return cachedSession;
   }
