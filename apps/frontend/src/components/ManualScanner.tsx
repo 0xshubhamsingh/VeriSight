@@ -58,20 +58,14 @@ function formatLabel(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+import { analyzeContentBrowser, preloadModel } from "../services/ai.client";
+
+// Preload the model in the background as soon as the component loads
+preloadModel().catch(console.error);
+
 async function requestAnalysis(data: AnalysisRequest): Promise<AnalysisResponse> {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Manual scan failed with status ${response.status}`);
-  }
-
-  return response.json() as Promise<AnalysisResponse>;
+  // Use the local Web Worker for 100% free, securely isolated, zero-latency inference
+  return await analyzeContentBrowser(data);
 }
 
 export function ManualScanner() {
