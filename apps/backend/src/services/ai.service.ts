@@ -2,7 +2,7 @@ import { AutoTokenizer, env as transformersEnv } from "@xenova/transformers";
 import type { AnalysisRequest, AnalysisResponse } from "@verisight/shared-types";
 import { env as onnxEnv, InferenceSession, Tensor as OnnxTensor } from "onnxruntime-web";
 // @ts-ignore
-import wasmModule from "onnxruntime-web/dist/ort-wasm.wasm";
+import wasmModule from "../../node_modules/onnxruntime-web/dist/ort-wasm.wasm";
 
 const TOKENIZER_ID = "bert-base-uncased";
 const MAX_SEQUENCE_LENGTH = 256;
