@@ -1,6 +1,8 @@
 import { AutoTokenizer, env as transformersEnv } from "@xenova/transformers";
 import type { AnalysisRequest, AnalysisResponse } from "@verisight/shared-types";
 import { env as onnxEnv, InferenceSession, Tensor as OnnxTensor } from "onnxruntime-web";
+// @ts-ignore
+import wasmModule from "@xenova/transformers/dist/ort-wasm.wasm";
 
 const TOKENIZER_ID = "bert-base-uncased";
 const MAX_SEQUENCE_LENGTH = 256;
@@ -135,8 +137,7 @@ export async function getSession(env: Env): Promise<InferenceSession> {
   }
 
   if (!onnxEnv.wasm.wasmBinary) {
-    const wasmRes = await fetch(TRANSFORMERS_WASM_BASE_URL + "ort-wasm.wasm");
-    onnxEnv.wasm.wasmBinary = new Uint8Array(await wasmRes.arrayBuffer());
+    onnxEnv.wasm.wasmBinary = wasmModule;
   }
 
   sessionPromise ??= InferenceSession.create(getModelUrl(env), {

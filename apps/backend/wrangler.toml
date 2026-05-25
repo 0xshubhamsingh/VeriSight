@@ -9,3 +9,8 @@ MODEL_URL = "https://media.githubusercontent.com/media/LordShivam18/AI-Based-Fak
 [observability.logs]
 enabled = false
 invocation_logs = true
+
+[[rules]]
+globs = ["**/*.wasm"]
+type = "CompiledWasm"
+fallbacks = []
