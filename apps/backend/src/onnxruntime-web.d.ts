@@ -39,8 +39,6 @@ declare module "onnxruntime-web" {
   };
 }
 
-
-
 declare module "@xenova/transformers" {
   export const env: any;
 

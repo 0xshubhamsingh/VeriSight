@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
-import { analyzeContent } from "./services/ai.service";
+import { analyzeContent, ModelInferenceError } from "./services/ai.service";
 import { analyzeRequestSchema } from "./validators/analyze.validator";
 
 type WorkerBindings = {
@@ -79,6 +79,16 @@ app.post("/analyze", async (c) => {
 app.onError((error, c) => {
   if (error instanceof HTTPException) {
     return c.json({ error: error.message }, error.status);
+  }
+
+  if (error instanceof ModelInferenceError) {
+    return c.json(
+      {
+        error: "Model inference failed",
+        details: error.message,
+      },
+      500,
+    );
   }
 
   console.error(error);

@@ -27,6 +27,7 @@ type BinaryOutcome = {
 };
 
 let tokenizerPromise: ReturnType<typeof AutoTokenizer.from_pretrained> | null = null;
+let cachedSession: InferenceSession | null = null;
 let sessionPromise: Promise<InferenceSession> | null = null;
 
 transformersEnv.allowRemoteModels = true;
@@ -35,6 +36,13 @@ transformersEnv.allowLocalModels = false;
 onnxEnv.wasm.numThreads = 1;
 onnxEnv.wasm.proxy = false;
 (onnxEnv.wasm as { simd?: boolean }).simd = false;
+
+export class ModelInferenceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ModelInferenceError";
+  }
+}
 
 function clampConfidence(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
@@ -105,15 +113,8 @@ function createSummary(
   return [firstLine, secondLine];
 }
 
-async function getModelData(env: Env): Promise<ArrayBuffer> {
-  const modelUrl = env.MODEL_URL?.trim() || DEFAULT_MODEL_URL;
-  const response = await fetch(modelUrl);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch model from ${modelUrl}: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.arrayBuffer();
+function getModelUrl(env: Env): string {
+  return env.MODEL_URL?.trim() || DEFAULT_MODEL_URL;
 }
 
 async function getTokenizer() {
@@ -125,15 +126,27 @@ async function getTokenizer() {
   return tokenizerPromise;
 }
 
-async function getSession(model: string | ArrayBuffer | Uint8Array) {
-  sessionPromise ??= InferenceSession.create(model as any, {
+async function getSession(env: Env): Promise<InferenceSession> {
+  if (cachedSession) {
+    return cachedSession;
+  }
+
+  sessionPromise ??= InferenceSession.create(getModelUrl(env), {
     executionProviders: ["wasm"],
+  }).then((session) => {
+    cachedSession = session;
+    return session;
   }).catch((error: unknown) => {
+    cachedSession = null;
     sessionPromise = null;
     throw error;
   });
 
   return sessionPromise;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function getLogitsTensor(outputs: ModelOutputMap): OnnxTensor {
@@ -181,53 +194,53 @@ export async function analyzeContent(
   data: AnalysisRequest,
   env: Env,
 ): Promise<AnalysisResponse> {
-  const tokenizer = await getTokenizer();
+  try {
+    const tokenizer = await getTokenizer();
+    const session = await getSession(env);
+    const inputText = buildInputText(data);
+    const tokenize = tokenizer as unknown as (text: string, options: Record<string, unknown>) => TokenizerEncoding;
 
-  if (!sessionPromise) {
-    const modelBuffer = await getModelData(env);
-    await getSession(new Uint8Array(modelBuffer));
+    const encoding = tokenize(inputText, {
+      padding: "max_length",
+      truncation: true,
+      max_length: MAX_SEQUENCE_LENGTH,
+      return_tensors: false,
+      return_token_type_ids: false,
+    });
+
+    const normalized = normalizeTokenizerEncoding(encoding);
+
+    const feeds = {
+      input_ids: toTensor(normalized.inputIds, [1, MAX_SEQUENCE_LENGTH]),
+      attention_mask: toTensor(normalized.attentionMask, [1, MAX_SEQUENCE_LENGTH]),
+    };
+
+    const outputs = (await session.run(feeds)) as ModelOutputMap;
+    const logitsTensor = getLogitsTensor(outputs);
+    const logits = Array.from(logitsTensor.data as Float32Array);
+
+    if (logits.length < 2) {
+      throw new Error("The ONNX model returned fewer than two logits.");
+    }
+
+    const [realLogit = 0, fakeLogit = 0] = logits;
+    const [realProbability, fakeProbability] = softmaxPair(realLogit, fakeLogit);
+    const mapped = mapBinaryOutcome(realProbability, fakeProbability);
+
+    return {
+      classification: mapped.classification,
+      confidence: mapped.confidence,
+      riskLevel: mapped.riskLevel,
+      summary: createSummary(
+        mapped.classification,
+        mapped.confidence,
+        realProbability,
+        fakeProbability,
+      ),
+    };
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error("AI Service Error:", error);
+    throw new ModelInferenceError(message);
   }
-
-  const session = await sessionPromise!;
-  const inputText = buildInputText(data);
-  const tokenize = tokenizer as unknown as (text: string, options: Record<string, unknown>) => TokenizerEncoding;
-
-  const encoding = tokenize(inputText, {
-    padding: "max_length",
-    truncation: true,
-    max_length: MAX_SEQUENCE_LENGTH,
-    return_tensors: false,
-    return_token_type_ids: false,
-  });
-
-  const normalized = normalizeTokenizerEncoding(encoding);
-
-  const feeds = {
-    input_ids: toTensor(normalized.inputIds, [1, MAX_SEQUENCE_LENGTH]),
-    attention_mask: toTensor(normalized.attentionMask, [1, MAX_SEQUENCE_LENGTH]),
-  };
-
-  const outputs = (await session.run(feeds)) as ModelOutputMap;
-  const logitsTensor = getLogitsTensor(outputs);
-  const logits = Array.from(logitsTensor.data as Float32Array);
-
-  if (logits.length < 2) {
-    throw new Error("The ONNX model returned fewer than two logits.");
-  }
-
-  const [realLogit = 0, fakeLogit = 0] = logits;
-  const [realProbability, fakeProbability] = softmaxPair(realLogit, fakeLogit);
-  const mapped = mapBinaryOutcome(realProbability, fakeProbability);
-
-  return {
-    classification: mapped.classification,
-    confidence: mapped.confidence,
-    riskLevel: mapped.riskLevel,
-    summary: createSummary(
-      mapped.classification,
-      mapped.confidence,
-      realProbability,
-      fakeProbability,
-    ),
-  };
 }
