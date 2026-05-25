@@ -38,7 +38,7 @@ app.post("/analyze", async (c) => {
     );
   }
 
-  const analysis = await analyzeContent(result.data);
+  const analysis = await analyzeContent(result.data, c.env);
 
   return c.json(analysis);
 });

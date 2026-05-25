@@ -28,4 +28,25 @@ declare module "onnxruntime-web" {
       },
     ): Promise<InferenceSession>;
   }
+
+  export const env: {
+    wasm: {
+      wasmPaths?: string | Record<string, string>;
+      numThreads?: number;
+      proxy?: boolean;
+      simd?: boolean;
+    };
+  };
+}
+
+declare module "onnxruntime-web/wasm" {
+  export { env, InferenceSession, Tensor } from "onnxruntime-web";
+}
+
+declare module "@xenova/transformers" {
+  export const env: any;
+
+  export class AutoTokenizer {
+    static from_pretrained(modelId: string): Promise<any>;
+  }
 }
