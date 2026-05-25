@@ -7,7 +7,7 @@ const MAX_SEQUENCE_LENGTH = 256;
 const TEXT_SNIPPET_LIMIT = 300;
 const REAL_CONFIDENCE_THRESHOLD = 0.8;
 const DEFAULT_MODEL_URL = "https://verisight-trust-engine.vercel.app/model.onnx";
-const DEFAULT_ORT_WASM_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort-wasm.wasm";
+const TRANSFORMERS_WASM_BASE_URL = "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/";
 
 type Env = {
   MODEL_URL?: string;
@@ -32,7 +32,9 @@ let sessionPromise: Promise<InferenceSession> | null = null;
 
 transformersEnv.allowRemoteModels = true;
 transformersEnv.allowLocalModels = false;
-(onnxEnv.wasm as any).wasmPaths = onnxEnv.wasm.wasmPaths ?? { "ort-wasm.wasm": DEFAULT_ORT_WASM_URL };
+transformersEnv.backends.onnx.wasm.numThreads = 1;
+transformersEnv.backends.onnx.wasm.wasmPaths = TRANSFORMERS_WASM_BASE_URL;
+onnxEnv.wasm.wasmPaths = TRANSFORMERS_WASM_BASE_URL;
 onnxEnv.wasm.numThreads = 1;
 onnxEnv.wasm.proxy = false;
 (onnxEnv.wasm as { simd?: boolean }).simd = false;
