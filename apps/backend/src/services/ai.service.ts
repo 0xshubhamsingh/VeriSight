@@ -6,7 +6,7 @@ const TOKENIZER_ID = "bert-base-uncased";
 const MAX_SEQUENCE_LENGTH = 256;
 const TEXT_SNIPPET_LIMIT = 300;
 const REAL_CONFIDENCE_THRESHOLD = 0.8;
-const DEFAULT_MODEL_URL = "https://verisight-trust-engine.vercel.app/model.onnx";
+const DEFAULT_MODEL_URL = "https://media.githubusercontent.com/media/LordShivam18/AI-Based-Fake-News-Detector/main/apps/frontend/public/model.onnx";
 const TRANSFORMERS_WASM_BASE_URL = "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/";
 
 type Env = {

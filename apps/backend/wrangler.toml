@@ -4,7 +4,7 @@ compatibility_date = "2026-05-24"
 workers_dev = true
 
 [vars]
-MODEL_URL = "https://verisight-trust-engine.vercel.app/model.onnx"
+MODEL_URL = "https://media.githubusercontent.com/media/LordShivam18/AI-Based-Fake-News-Detector/main/apps/frontend/public/model.onnx"
 
 [observability.logs]
 enabled = false
