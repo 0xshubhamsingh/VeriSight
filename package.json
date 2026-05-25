@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.3.0",
+  "workspaces": ["apps/*", "packages/*"],
   "type": "module",
   "scripts": {
     "dev": "pnpm --parallel --filter @verisight/backend --filter @verisight/frontend --filter @verisight/extension dev",

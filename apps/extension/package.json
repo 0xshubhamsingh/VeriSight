@@ -9,7 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@verisight/shared-types": "workspace:*",
+    "@verisight/shared-types": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
