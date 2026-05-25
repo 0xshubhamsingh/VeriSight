@@ -6,7 +6,7 @@ const TOKENIZER_ID = "bert-base-uncased";
 const MAX_SEQUENCE_LENGTH = 256;
 const TEXT_SNIPPET_LIMIT = 300;
 const REAL_CONFIDENCE_THRESHOLD = 0.8;
-const DEFAULT_MODEL_URL = "https://your-pages-site.pages.dev/model.onnx";
+const DEFAULT_MODEL_URL = "https://verisight-trust-engine.vercel.app/model.onnx";
 const DEFAULT_ORT_WASM_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort-wasm.wasm";
 
 type Env = {
@@ -126,7 +126,7 @@ async function getTokenizer() {
 }
 
 async function getSession(model: string | ArrayBuffer | Uint8Array) {
-  sessionPromise ??= InferenceSession.create(model, {
+  sessionPromise ??= InferenceSession.create(model as any, {
     executionProviders: ["wasm"],
   }).catch((error: unknown) => {
     sessionPromise = null;
@@ -182,8 +182,13 @@ export async function analyzeContent(
   env: Env,
 ): Promise<AnalysisResponse> {
   const tokenizer = await getTokenizer();
-  const modelBuffer = await getModelData(env);
-  const session = await getSession(new Uint8Array(modelBuffer));
+
+  if (!sessionPromise) {
+    const modelBuffer = await getModelData(env);
+    await getSession(new Uint8Array(modelBuffer));
+  }
+
+  const session = await sessionPromise!;
   const inputText = buildInputText(data);
   const tokenize = tokenizer as unknown as (text: string, options: Record<string, unknown>) => TokenizerEncoding;
 

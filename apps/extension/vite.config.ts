@@ -5,6 +5,9 @@ const contentEntry = fileURLToPath(new URL("./src/content.tsx", import.meta.url)
 
 export default defineConfig({
   publicDir: "public",
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,

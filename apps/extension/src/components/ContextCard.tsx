@@ -106,7 +106,7 @@ export function ContextCard(props: ContextCardProps) {
         </div>
 
         <p style={styles.errorText}>
-          {props.message ?? "Please check that the local backend is running and try again."}
+          {props.message ?? "Please check that the backend is running and try again."}
         </p>
       </aside>
     );

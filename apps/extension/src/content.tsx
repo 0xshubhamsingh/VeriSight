@@ -3,7 +3,7 @@ import type { AnalysisRequest, AnalysisResponse } from "@verisight/shared-types"
 import { ContextCard } from "./components/ContextCard";
 import { extractPageContext } from "./utils/extractor";
 
-const API_URL = "http://localhost:8787/analyze";
+const API_URL = "https://verisight-backend.frayquaza.workers.dev/analyze";
 const HOST_ID = "verisight-root";
 
 function waitForDomReady(): Promise<void> {
@@ -74,7 +74,7 @@ async function bootstrap(): Promise<void> {
     root.render(
       <ContextCard
         state="error"
-        message="Please check that the local backend is running on http://localhost:8787."
+        message="Please check that the backend is running and try again."
       />,
     );
   }
