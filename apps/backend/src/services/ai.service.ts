@@ -16,6 +16,7 @@ type Env = {
 type TokenizerEncoding = {
   input_ids: number[] | number[][];
   attention_mask: number[] | number[][];
+  token_type_ids?: number[] | number[][];
 };
 
 type ModelOutputMap = Record<string, OnnxTensor | undefined>;
@@ -185,10 +186,12 @@ function padSequence(values: number[]): number[] {
 function normalizeTokenizerEncoding(encoding: TokenizerEncoding): {
   inputIds: number[];
   attentionMask: number[];
+  tokenTypeIds: number[];
 } {
   return {
     inputIds: padSequence(normalizeTokenIds(encoding.input_ids)),
     attentionMask: padSequence(normalizeTokenIds(encoding.attention_mask)),
+    tokenTypeIds: padSequence(normalizeTokenIds(encoding.token_type_ids || [])),
   };
 }
 
@@ -206,16 +209,19 @@ export async function analyzeContent(
       padding: "max_length",
       truncation: true,
       max_length: MAX_SEQUENCE_LENGTH,
-      return_tensors: false,
-      return_token_type_ids: false,
+      return_tensor: false,
     });
 
     const normalized = normalizeTokenizerEncoding(encoding);
 
-    const feeds = {
+    const feeds: Record<string, OnnxTensor> = {
       input_ids: toTensor(normalized.inputIds, [1, MAX_SEQUENCE_LENGTH]),
       attention_mask: toTensor(normalized.attentionMask, [1, MAX_SEQUENCE_LENGTH]),
     };
+    
+    if (encoding.token_type_ids) {
+      feeds.token_type_ids = toTensor(normalized.tokenTypeIds, [1, MAX_SEQUENCE_LENGTH]);
+    }
 
     const outputs = (await session.run(feeds)) as ModelOutputMap;
     const logitsTensor = getLogitsTensor(outputs);
