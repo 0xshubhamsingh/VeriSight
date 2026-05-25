@@ -14,9 +14,9 @@ type Env = {
 };
 
 type TokenizerEncoding = {
-  input_ids: number[] | number[][];
-  attention_mask: number[] | number[][];
-  token_type_ids?: number[] | number[][];
+  input_ids: any;
+  attention_mask: any;
+  token_type_ids?: any;
 };
 
 type ModelOutputMap = Record<string, OnnxTensor | undefined>;
@@ -170,8 +170,12 @@ function toTensor(values: number[], dims: number[]): OnnxTensor {
   return new OnnxTensor("int64", BigInt64Array.from(values.map((value) => BigInt(value))), dims);
 }
 
-function normalizeTokenIds(values: number[] | number[][]): number[] {
-  const sequence = Array.isArray(values[0]) ? (values[0] as number[]) : (values as number[]);
+function normalizeTokenIds(values: any): number[] {
+  let seq = values;
+  if (seq && seq.data) {
+    seq = Array.from(seq.data);
+  }
+  const sequence = Array.isArray(seq[0]) ? (seq[0] as number[]) : (seq as number[]);
   return sequence.slice(0, MAX_SEQUENCE_LENGTH);
 }
 
@@ -209,7 +213,7 @@ export async function analyzeContent(
       padding: "max_length",
       truncation: true,
       max_length: MAX_SEQUENCE_LENGTH,
-      return_tensor: false,
+      return_tensors: false,
     });
 
     const normalized = normalizeTokenizerEncoding(encoding);
@@ -218,12 +222,23 @@ export async function analyzeContent(
       input_ids: toTensor(normalized.inputIds, [1, MAX_SEQUENCE_LENGTH]),
       attention_mask: toTensor(normalized.attentionMask, [1, MAX_SEQUENCE_LENGTH]),
     };
-    
-    if (encoding.token_type_ids) {
-      feeds.token_type_ids = toTensor(normalized.tokenTypeIds, [1, MAX_SEQUENCE_LENGTH]);
+
+    let outputs: ModelOutputMap;
+    try {
+      if (encoding.token_type_ids) {
+        feeds.token_type_ids = toTensor(normalized.tokenTypeIds, [1, MAX_SEQUENCE_LENGTH]);
+      }
+      outputs = (await session.run(feeds)) as ModelOutputMap;
+    } catch (e) {
+      // If it fails with token_type_ids, try without it
+      if (feeds.token_type_ids) {
+        delete feeds.token_type_ids;
+        outputs = (await session.run(feeds)) as ModelOutputMap;
+      } else {
+        throw e;
+      }
     }
 
-    const outputs = (await session.run(feeds)) as ModelOutputMap;
     const logitsTensor = getLogitsTensor(outputs);
     const logits = Array.from(logitsTensor.data as Float32Array);
 
@@ -248,7 +263,7 @@ export async function analyzeContent(
     };
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    console.error("AI Service Error:", error);
+    console.error("AI Service Error:", error, message);
     throw new ModelInferenceError(message);
   }
 }
