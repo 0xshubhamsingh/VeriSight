@@ -219,7 +219,6 @@ export async function analyzeContent(
       padding: "max_length",
       truncation: true,
       max_length: MAX_SEQUENCE_LENGTH,
-      return_tensors: false,
     });
 
     const normalized = normalizeTokenizerEncoding(encoding);
