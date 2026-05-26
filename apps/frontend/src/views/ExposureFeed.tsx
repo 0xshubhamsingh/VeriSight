@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Inbox } from "lucide-react";
 import { RiskBadge } from "../components/RiskBadge";
 import { useVeriSightStore } from "../store/useStore";
 
@@ -16,54 +16,66 @@ export function ExposureFeed() {
         </h1>
       </header>
 
-      <section className="overflow-hidden rounded-xl border border-emerald-500/20 bg-slate-900/70">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-800">
-            <thead className="bg-slate-950/70">
-              <tr>
-                <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-normal text-slate-500">
-                  Risk
-                </th>
-                <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-normal text-slate-500">
-                  Headline
-                </th>
-                <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-normal text-slate-500">
-                  Classification
-                </th>
-                <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-normal text-slate-500">
-                  Confidence
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/80">
-              {scans.map((scan) => (
-                <tr key={scan.id} className="transition hover:bg-emerald-400/[0.03]">
-                  <td className="px-5 py-4">
-                    <RiskBadge riskLevel={scan.riskLevel} />
-                  </td>
-                  <td className="max-w-xl px-5 py-4">
-                    <div className="flex items-start gap-3">
-                      <ExternalLink className="mt-1 h-4 w-4 flex-none text-slate-600" />
-                      <div>
-                        <p className="font-semibold leading-6 text-slate-100">
-                          {scan.headline}
-                        </p>
-                        <p className="mt-1 truncate text-xs text-slate-500">{scan.url}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm font-semibold capitalize text-slate-300">
-                    {scan.classification}
-                  </td>
-                  <td className="px-5 py-4 text-right text-sm font-black text-emerald-300">
-                    {scan.confidence}%
-                  </td>
+      {scans.length > 0 ? (
+        <section className="overflow-hidden rounded-xl border border-emerald-500/20 bg-slate-900/70">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-800">
+              <thead className="bg-slate-950/70">
+                <tr>
+                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-normal text-slate-500">
+                    Risk
+                  </th>
+                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-normal text-slate-500">
+                    Headline
+                  </th>
+                  <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-normal text-slate-500">
+                    Classification
+                  </th>
+                  <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-normal text-slate-500">
+                    Confidence
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {scans.map((scan) => (
+                  <tr key={scan.id} className="transition hover:bg-emerald-400/[0.03]">
+                    <td className="px-5 py-4">
+                      <RiskBadge riskLevel={scan.riskLevel} />
+                    </td>
+                    <td className="max-w-xl px-5 py-4">
+                      <div className="flex items-start gap-3">
+                        <ExternalLink className="mt-1 h-4 w-4 flex-none text-slate-600" />
+                        <div>
+                          <p className="font-semibold leading-6 text-slate-100">
+                            {scan.headline}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-slate-500">{scan.url}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-sm font-semibold capitalize text-slate-300">
+                      {scan.classification}
+                    </td>
+                    <td className="px-5 py-4 text-right text-sm font-black text-emerald-300">
+                      {scan.confidence}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : (
+        <section className="flex flex-col items-center justify-center rounded-xl border border-emerald-500/20 bg-slate-900/70 py-20 text-center">
+          <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-5">
+            <Inbox className="h-8 w-8 text-slate-600" aria-hidden="true" />
+          </div>
+          <p className="mt-5 text-lg font-bold text-slate-300">No scans recorded</p>
+          <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+            Run a manual scan from the dashboard to start populating your exposure feed.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

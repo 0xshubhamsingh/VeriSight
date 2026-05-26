@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { AlertCircle, Loader2, ShieldCheck } from "lucide-react";
 import type { AnalysisRequest, AnalysisResponse } from "@verisight/shared-types";
 import { RiskBadge } from "./RiskBadge";
+import { useVeriSightStore } from "../store/useStore";
 
 const API_URL = "https://verisight-backend.frayquaza.workers.dev/analyze";
 const MANUAL_TEXT_URL = "https://manual.verisight.local/scan";
@@ -91,9 +92,17 @@ export function ManualScanner() {
     setError("");
 
     try {
-      const analysis = await requestAnalysis(buildManualRequest(cleaned));
+      const request = buildManualRequest(cleaned);
+      const analysis = await requestAnalysis(request);
       setResult(analysis);
       setState("success");
+
+      // Persist to store so dashboard, feed, and insights update
+      useVeriSightStore.getState().addScan({
+        ...analysis,
+        url: request.url,
+        headline: request.headline,
+      });
     } catch (requestError) {
       console.warn("[VeriSight] Manual scan failed.", requestError);
       setResult(null);
