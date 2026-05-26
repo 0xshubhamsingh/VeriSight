@@ -7,11 +7,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useMemo } from "react";
 import { BarChart3 } from "lucide-react";
-import { useVeriSightStore, selectExposureTrend } from "../store/useStore";
+import { useVeriSightStore, computeExposureTrend } from "../store/useStore";
 
 export function Insights() {
-  const exposureTrend = useVeriSightStore(selectExposureTrend);
+  const scans = useVeriSightStore((state) => state.scans);
+  const exposureTrend = useMemo(() => computeExposureTrend(scans), [scans]);
 
   return (
     <div className="space-y-6">

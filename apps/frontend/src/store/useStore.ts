@@ -45,8 +45,8 @@ export function selectLiteracyScore(state: VeriSightState): number | null {
  * Build the last-7-days exposure trend from actual scan timestamps.
  * Returns an empty array when there are no scans.
  */
-export function selectExposureTrend(state: VeriSightState): ExposurePoint[] {
-  if (state.scans.length === 0) return [];
+export function computeExposureTrend(scans: ScanRecord[]): ExposurePoint[] {
+  if (scans.length === 0) return [];
 
   const now = new Date();
   const days: ExposurePoint[] = [];
@@ -57,7 +57,7 @@ export function selectExposureTrend(state: VeriSightState): ExposurePoint[] {
     const dateStr = d.toISOString().slice(0, 10); // "YYYY-MM-DD"
     const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-    const dayscans = state.scans.filter((s) => s.date.slice(0, 10) === dateStr);
+    const dayscans = scans.filter((s) => s.date.slice(0, 10) === dateStr);
 
     days.push({
       day: label,
