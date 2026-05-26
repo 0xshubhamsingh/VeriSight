@@ -216,7 +216,7 @@ export async function analyzeContent(
     const tokenize = tokenizer as unknown as (text: string, options: Record<string, unknown>) => TokenizerEncoding;
 
     const encoding = tokenize(inputText, {
-      padding: "max_length",
+      padding: true,
       truncation: true,
       max_length: MAX_SEQUENCE_LENGTH,
     });

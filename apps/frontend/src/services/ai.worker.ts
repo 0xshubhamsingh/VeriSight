@@ -55,18 +55,22 @@ async function analyzeContent(request: AnalysisRequest): Promise<AnalysisRespons
   const textToAnalyze = `${request.headline} ${request.contentSnippets.join(" ")}`;
 
   const encoded = await tokenizer(textToAnalyze, {
-    padding: "max_length",
+    padding: true,
     truncation: true,
     max_length: MAX_SEQUENCE_LENGTH,
   });
 
-  const extractData = (tensor: any) => {
+  const extractAndPad = (tensor: any) => {
     const arr = tensor?.data ? Array.from(tensor.data) : Array.from(tensor);
-    return arr.map(val => BigInt((val as any) ?? 0));
+    const padded = [...arr];
+    while (padded.length < MAX_SEQUENCE_LENGTH) {
+      padded.push(0);
+    }
+    return padded.map(val => BigInt((val as any) ?? 0));
   };
   
-  const inputIdsArray = extractData(encoded.input_ids);
-  const attentionMaskArray = extractData(encoded.attention_mask);
+  const inputIdsArray = extractAndPad(encoded.input_ids);
+  const attentionMaskArray = extractAndPad(encoded.attention_mask);
 
   const inputIdsTensor = new OnnxTensor("int64", BigInt64Array.from(inputIdsArray), [1, MAX_SEQUENCE_LENGTH]);
   const attentionMaskTensor = new OnnxTensor("int64", BigInt64Array.from(attentionMaskArray), [1, MAX_SEQUENCE_LENGTH]);
