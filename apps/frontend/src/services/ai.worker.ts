@@ -15,7 +15,7 @@ const TOKENIZER_ID = "bert-base-uncased";
 const MAX_SEQUENCE_LENGTH = 256;
 
 // To bypass Cloudflare Workers we run locally in browser
-const MODEL_URL = "/model.onnx";
+const MODEL_URL = "https://media.githubusercontent.com/media/LordShivam18/AI-Based-Fake-News-Detector/main/apps/frontend/public/model.onnx";
 
 let tokenizerPromise: ReturnType<typeof AutoTokenizer.from_pretrained> | null = null;
 let sessionPromise: Promise<InferenceSession> | null = null;
