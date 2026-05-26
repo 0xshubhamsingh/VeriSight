@@ -78,6 +78,9 @@ async function analyzeContent(request: AnalysisRequest): Promise<AnalysisRespons
 
   const results = await session.run(feeds);
   const outputTensor = results[session.outputNames[0]!];
+  if (!outputTensor) {
+    throw new Error("Output tensor is undefined");
+  }
   const logits = outputTensor.data as Float32Array;
 
   const [realLogit = 0, fakeLogit = 0] = logits;
