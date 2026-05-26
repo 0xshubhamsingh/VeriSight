@@ -182,7 +182,8 @@ function normalizeTokenIds(values: any): number[] {
     seq = Array.from(seq.data);
   }
   const sequence = Array.isArray(seq[0]) ? (seq[0] as number[]) : (seq as number[]);
-  return sequence.slice(0, MAX_SEQUENCE_LENGTH);
+  const sanitized = sequence.map(val => val ?? 0);
+  return sanitized.slice(0, MAX_SEQUENCE_LENGTH);
 }
 
 function padSequence(values: number[]): number[] {
@@ -216,9 +217,10 @@ export async function analyzeContent(
     const tokenize = tokenizer as unknown as (text: string, options: Record<string, unknown>) => TokenizerEncoding;
 
     const encoding = tokenize(inputText, {
-      padding: true,
+      padding: "max_length",
       truncation: true,
       max_length: MAX_SEQUENCE_LENGTH,
+      return_tensor: false,
     });
 
     const normalized = normalizeTokenizerEncoding(encoding);
