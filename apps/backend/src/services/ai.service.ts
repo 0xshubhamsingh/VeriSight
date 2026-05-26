@@ -252,7 +252,7 @@ export async function analyzeContent(
       throw new Error("The ONNX model returned fewer than two logits.");
     }
 
-    const [realLogit = 0, fakeLogit = 0] = logits;
+    const [fakeLogit = 0, realLogit = 0] = logits;
     const [realProbability, fakeProbability] = softmaxPair(realLogit, fakeLogit);
     const mapped = mapBinaryOutcome(realProbability, fakeProbability);
 

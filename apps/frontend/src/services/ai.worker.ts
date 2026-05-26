@@ -83,7 +83,7 @@ async function analyzeContent(request: AnalysisRequest): Promise<AnalysisRespons
   }
   const logits = outputTensor.data as Float32Array;
 
-  const [realLogit = 0, fakeLogit = 0] = logits;
+  const [fakeLogit = 0, realLogit = 0] = logits;
   const [realProbability, fakeProbability] = softmaxPair(realLogit, fakeLogit);
 
   const confidence = Math.round(Math.max(realProbability, fakeProbability) * 100);
