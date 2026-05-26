@@ -55,21 +55,21 @@ async function analyzeContent(request: AnalysisRequest): Promise<AnalysisRespons
   const textToAnalyze = `${request.headline} ${request.contentSnippets.join(" ")}`;
 
   const encoded = await tokenizer(textToAnalyze, {
-    padding: true,
+    padding: "max_length",
     truncation: true,
     max_length: MAX_SEQUENCE_LENGTH,
-    return_tensor: false,
   });
 
-  // The tokenizer can sometimes leave undefined holes when padding, which crashes BigInt()
-  // We manually map them to 0 to prevent the crash
-  const sanitize = (arr: any[]) => arr.map(val => BigInt(val ?? 0));
+  const extractData = (tensor: any) => {
+    const arr = tensor?.data ? Array.from(tensor.data) : Array.from(tensor);
+    return arr.map(val => BigInt((val as any) ?? 0));
+  };
   
-  const inputIdsArray = sanitize(Array.from(encoded.input_ids));
-  const attentionMaskArray = sanitize(Array.from(encoded.attention_mask));
+  const inputIdsArray = extractData(encoded.input_ids);
+  const attentionMaskArray = extractData(encoded.attention_mask);
 
-  const inputIdsTensor = new OnnxTensor("int64", BigInt64Array.from(inputIdsArray), [1, inputIdsArray.length]);
-  const attentionMaskTensor = new OnnxTensor("int64", BigInt64Array.from(attentionMaskArray), [1, attentionMaskArray.length]);
+  const inputIdsTensor = new OnnxTensor("int64", BigInt64Array.from(inputIdsArray), [1, MAX_SEQUENCE_LENGTH]);
+  const attentionMaskTensor = new OnnxTensor("int64", BigInt64Array.from(attentionMaskArray), [1, MAX_SEQUENCE_LENGTH]);
 
   const feeds = {
     input_ids: inputIdsTensor,
